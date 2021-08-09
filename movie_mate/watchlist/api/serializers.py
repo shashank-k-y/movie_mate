@@ -1,10 +1,11 @@
 from rest_framework import serializers
+from .validators import validate_name
 
 from watchlist.models import Movie
 
 class MovieSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
-    name = serializers.CharField()
+    name = serializers.CharField(validators=[validate_name])
     description = serializers.CharField()
     active = serializers.BooleanField()
 
@@ -17,3 +18,8 @@ class MovieSerializer(serializers.Serializer):
         instance.active = validated_data.get('active', instance.active)
         instance.save()
         return instance
+
+    def validate(self, data):
+        if data["name"] == data["description"]:
+            raise serializers.ValidationError("Name and Description can not be same.")
+        return data
