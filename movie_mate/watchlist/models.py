@@ -2,6 +2,7 @@ from django.db import models
 
 # Create your models here.
 
+
 class StreamingPlatform(models.Model):
     name = models.CharField(max_length=20)
     about = models.CharField(max_length=200)
@@ -9,6 +10,7 @@ class StreamingPlatform(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class WatchList(models.Model):
     title = models.CharField(max_length=50)

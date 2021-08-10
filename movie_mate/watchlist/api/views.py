@@ -1,9 +1,12 @@
-from rest_framework import serializers, status
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from watchlist.models import WatchList, StreamingPlatform
-from watchlist.api.serializers import WatchListSerializer, StreamingPlatformSerializer
+from watchlist.api.serializers import (
+    WatchListSerializer,
+    StreamingPlatformSerializer
+)
 
 
 class WatchListView(APIView):
