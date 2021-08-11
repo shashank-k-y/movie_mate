@@ -109,3 +109,15 @@ class StreamingPlatformDetailView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors)
+
+    def delete(self, request, pk):
+        try:
+            movie = StreamingPlatform.objects.get(pk=pk)
+        except StreamingPlatform.DoesNotExist:
+            return Response(
+                {"error": "Movie does not exist"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        movie.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
