@@ -5,7 +5,8 @@ from watchlist.api.views import (
     StreamingPlatFormView,
     StreamingPlatformDetailView,
     ReviewList,
-    ReviewDetail
+    ReviewDetail,
+    ReviewCreate
 )
 
 urlpatterns = [
@@ -17,9 +18,18 @@ urlpatterns = [
         StreamingPlatformDetailView.as_view(),
         name='platform'
     ),
-    path('review/', ReviewList.as_view(), name="review-list"),
     path(
-        'review-detail/<int:pk>',
+        'platform/<int:pk>/review-create',
+        ReviewCreate.as_view(),
+        name="review-create"
+    ),
+    path(
+        'platform/<int:pk>/review/',
+        ReviewList.as_view(),
+        name="review-list"
+    ),
+    path(
+        'platform/review-detail/<int:pk>',
         ReviewDetail.as_view(),
         name="review-detail"
     )

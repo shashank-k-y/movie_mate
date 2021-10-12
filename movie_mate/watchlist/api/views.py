@@ -145,9 +145,21 @@ class StreamingPlatformDetailView(APIView):
 #         return self.retrieve(request, *args, **kwargs)
 
 
-class ReviewList(generics.ListCreateAPIView):
-    queryset = Review.objects.all()
+class ReviewCreate(generics.CreateAPIView):
     serializer_class = ReviewSerializer
+
+    def perform_create(self, serializer):
+        pk = self.kwargs['pk']
+        watch_list = WatchList.objects.get(reviews=pk)
+        serializer.save(watch_list=watch_list)
+
+
+class ReviewList(generics.ListAPIView):
+    serializer_class = ReviewSerializer
+
+    def get_queryset(self):
+        pk = self.kwargs['pk']
+        return Review.objects.filter(watch_list=pk)
 
 
 class ReviewDetail(generics.RetrieveUpdateDestroyAPIView):
