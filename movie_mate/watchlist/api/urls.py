@@ -23,17 +23,17 @@ urlpatterns = [
         name='platform'
     ),
     path(
-        'platform/<int:pk>/review-create',
+        'stream/<int:pk>/review-create',
         ReviewCreate.as_view(),
         name="review-create"
     ),
     path(
-        'platform/<int:pk>/review/',
+        'stream/<int:pk>/review/',
         ReviewList.as_view(),
         name="review-list"
     ),
     path(
-        'platform/review-detail/<int:pk>',
+        'stream/review-detail/<int:pk>',
         ReviewDetail.as_view(),
         name="review-detail"
     ),
