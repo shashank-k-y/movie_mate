@@ -1,3 +1,4 @@
+from rest_framework.exceptions import ValidationError
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -148,10 +149,17 @@ class StreamingPlatformDetailView(APIView):
 class ReviewCreate(generics.CreateAPIView):
     serializer_class = ReviewSerializer
 
+    def get_queryset(self):
+        return Review.objects.all()
+
     def perform_create(self, serializer):
         pk = self.kwargs['pk']
         watch_list = WatchList.objects.get(reviews=pk)
-        serializer.save(watch_list=watch_list)
+        user = self.request.user
+        review = Review.objects.filter(watch_list=watch_list, reviewer=user)
+        if review.exists():
+            raise ValidationError("You have already reviewed this movie")
+        serializer.save(watch_list=watch_list, reviewer=user)
 
 
 class ReviewList(generics.ListAPIView):
