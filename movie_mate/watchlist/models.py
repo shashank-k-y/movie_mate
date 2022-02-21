@@ -23,7 +23,7 @@ class WatchList(models.Model):
         related_name='watchlist'
     )
     average_rating = models.FloatField(default=0)
-    number_of_ratings = models.IntegerField(default=0) 
+    number_of_ratings = models.IntegerField(default=0)
     active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now=True)
 
