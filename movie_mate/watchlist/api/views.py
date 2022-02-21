@@ -10,6 +10,7 @@ from watchlist.api.serializers import (
     WatchListSerializer,
     StreamingPlatformSerializer
 )
+from watchlist.api.permissions import ReviewUserOrReadOnly
 
 
 class WatchListView(APIView):
@@ -173,6 +174,7 @@ class ReviewList(generics.ListAPIView):
 class ReviewDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
+    permission_classes = [ReviewUserOrReadOnly]
 
 
 # class StreamPlatformAV(viewsets.ViewSet):
