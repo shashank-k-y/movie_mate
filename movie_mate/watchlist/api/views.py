@@ -3,6 +3,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import generics, viewsets
+from rest_framework.permissions import IsAuthenticated
 
 from watchlist.models import WatchList, StreamingPlatform, Review
 from watchlist.api.serializers import (
@@ -165,7 +166,8 @@ class ReviewCreate(generics.CreateAPIView):
             watch_list.average_rating = serializer.validated_data['ratings']
         else:
             watch_list.average_rating = (
-                watch_list.average_rating + serializer.validated_data['ratings']
+                watch_list.average_rating +
+                serializer.validated_data['ratings']
             ) / 2
         watch_list.number_of_ratings += 1
         watch_list.save()
@@ -175,6 +177,7 @@ class ReviewCreate(generics.CreateAPIView):
 
 class ReviewList(generics.ListAPIView):
     serializer_class = ReviewSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         pk = self.kwargs['pk']
