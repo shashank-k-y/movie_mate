@@ -11,10 +11,15 @@ from watchlist.api.serializers import (
     WatchListSerializer,
     StreamingPlatformSerializer
 )
-from watchlist.api.permissions import ReviewUserOrReadOnly
+from watchlist.api.permissions import (
+    IsReviewUserOrReadOnly,
+    IsAdminOrReadOnly
+)
 
 
 class WatchListView(APIView):
+
+    permission_classes = [IsAdminOrReadOnly]
 
     def get(self, request):
         movies = WatchList.objects.all()
@@ -30,6 +35,8 @@ class WatchListView(APIView):
 
 
 class WatchListDetailView(APIView):
+
+    permission_classes = [IsAdminOrReadOnly]
 
     def get(self, request, pk):
         try:
@@ -73,6 +80,8 @@ class WatchListDetailView(APIView):
 
 class StreamingPlatFormView(APIView):
 
+    permission_classes = [IsAdminOrReadOnly]
+
     def get(self, request):
         movies = StreamingPlatform.objects.all()
         serializer = StreamingPlatformSerializer(movies, many=True)
@@ -87,6 +96,8 @@ class StreamingPlatFormView(APIView):
 
 
 class StreamingPlatformDetailView(APIView):
+
+    permission_classes = [IsAdminOrReadOnly]
 
     def get(self, request, pk):
         try:
@@ -150,6 +161,7 @@ class StreamingPlatformDetailView(APIView):
 
 class ReviewCreate(generics.CreateAPIView):
     serializer_class = ReviewSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return Review.objects.all()
@@ -177,7 +189,6 @@ class ReviewCreate(generics.CreateAPIView):
 
 class ReviewList(generics.ListAPIView):
     serializer_class = ReviewSerializer
-    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         pk = self.kwargs['pk']
@@ -187,7 +198,7 @@ class ReviewList(generics.ListAPIView):
 class ReviewDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-    permission_classes = [ReviewUserOrReadOnly]
+    permission_classes = [IsReviewUserOrReadOnly]
 
 
 # class StreamPlatformAV(viewsets.ViewSet):
@@ -216,3 +227,4 @@ class ReviewDetail(generics.RetrieveUpdateDestroyAPIView):
 class StreamPlatformAV(viewsets.ModelViewSet):
     queryset = StreamingPlatform.objects.all()
     serializer_class = StreamingPlatformSerializer
+    permission_classes = [IsAdminOrReadOnly]
