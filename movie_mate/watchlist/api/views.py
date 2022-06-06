@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 from rest_framework import generics, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.throttling import ScopedRateThrottle
+from rest_framework import filters
 
 from watchlist.models import WatchList, StreamingPlatform, Review
 from watchlist.api.serializers import (
@@ -247,3 +248,10 @@ class FilterMovie(generics.ListAPIView):
     serializer_class = WatchListSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['title', 'platform__name']
+
+
+class SearchMovie(generics.ListAPIView):
+    queryset = WatchList.objects.all()
+    serializer_class = WatchListSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['title', 'platform__name']
