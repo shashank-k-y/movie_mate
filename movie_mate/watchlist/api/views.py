@@ -1,3 +1,5 @@
+from django_filters.rest_framework import DjangoFilterBackend
+
 from rest_framework.exceptions import ValidationError
 from rest_framework import status
 from rest_framework.response import Response
@@ -238,3 +240,10 @@ class StreamPlatformAV(viewsets.ModelViewSet):
     queryset = StreamingPlatform.objects.all()
     serializer_class = StreamingPlatformSerializer
     permission_classes = [IsAdminOrReadOnly]
+
+
+class FilterMovie(generics.ListAPIView):
+    queryset = WatchList.objects.all()
+    serializer_class = WatchListSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['title', 'platform__name']

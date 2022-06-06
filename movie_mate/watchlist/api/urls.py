@@ -7,7 +7,8 @@ from watchlist.api.views import (
     ReviewList,
     ReviewDetail,
     ReviewCreate,
-    StreamPlatformAV
+    StreamPlatformAV,
+    FilterMovie,
 )
 from rest_framework.routers import DefaultRouter
 
@@ -38,4 +39,5 @@ urlpatterns = [
         name="review-detail"
     ),
     path('', include(router.urls)),
+    path('filter-movie', FilterMovie.as_view(), name='filter-movie')
 ]
