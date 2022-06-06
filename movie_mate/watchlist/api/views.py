@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django_filters.rest_framework import DjangoFilterBackend
 
 from rest_framework.exceptions import ValidationError
@@ -32,11 +33,26 @@ class WatchListView(APIView):
         return Response(serializer.data)
 
     def post(self, request):
-        serializer = WatchListSerializer(data=request.data)
+        try:
+            platform = StreamingPlatform.objects.get(
+                name=request.data['platform']
+            )
+        except ObjectDoesNotExist:
+            return Response(
+                {"error": "platform does not exist"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        serializer = WatchListSerializer(
+            data=request.data, context={"platform": platform}
+        )
+
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors)
+
+        return Response(
+            serializer.errors, status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class WatchListDetailView(APIView):
@@ -68,7 +84,10 @@ class WatchListDetailView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(
+            serializer.errors, status=status.HTTP_400_BAD_REQUEST
+        )
 
     def delete(self, request, pk):
         try:

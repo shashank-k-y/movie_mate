@@ -12,11 +12,16 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 class WatchListSerializer(serializers.ModelSerializer):
-    platform = serializers.CharField(source='platform.name')
+    platform = serializers.CharField(source="platform.name")
 
     class Meta:
         model = WatchList
         fields = "__all__"
+
+    def create(self, validated_data):
+        platform = self.context['platform']
+        validated_data.update(platform=platform)
+        return WatchList.objects.create(**validated_data)
 
 
 class StreamingPlatformSerializer(serializers.ModelSerializer):
