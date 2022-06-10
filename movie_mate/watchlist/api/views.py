@@ -21,6 +21,7 @@ from watchlist.api.permissions import (
     IsAdminOrReadOnly
 )
 from watchlist.api.throttling import ReviewCreateThrottle, ReviewListThrottle
+from watchlist.api.pagination import WatchListPagination, WatchListLimitOffsetPagination
 
 
 class WatchListView(APIView):
@@ -29,7 +30,9 @@ class WatchListView(APIView):
 
     def get(self, request):
         movies = WatchList.objects.all()
-        serializer = WatchListSerializer(movies, many=True)
+        paginator = WatchListPagination()
+        result_page = paginator.paginate_queryset(queryset=movies, request=request)
+        serializer = WatchListSerializer(result_page, many=True)
         return Response(serializer.data)
 
     def post(self, request):
@@ -265,6 +268,7 @@ class StreamPlatformAV(viewsets.ModelViewSet):
 class FilterMovie(generics.ListAPIView):
     queryset = WatchList.objects.all()
     serializer_class = WatchListSerializer
+    pagination_class = WatchListLimitOffsetPagination
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['title', 'platform__name']
 
