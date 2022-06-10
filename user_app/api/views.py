@@ -12,7 +12,7 @@ def registration_view(request):
         serializer = RegistrationSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(
-                data=serializer.error_messages,
+                data=serializer.errors,
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -23,7 +23,7 @@ def registration_view(request):
             "token": token
         }
         data.update(serializer.data)
-        return Response(data=data, status=status.HTTP_200_OK)
+        return Response(data=data, status=status.HTTP_201_CREATED)
 
 
 @api_view(['POST', ])

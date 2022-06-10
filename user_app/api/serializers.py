@@ -6,20 +6,14 @@ from rest_framework import serializers
 class RegistrationSerializer(serializers.ModelSerializer):
     username = serializers.CharField(required=True)
     email = serializers.CharField(required=True)
-    password = serializers.CharField(required=True)
+    password = serializers.CharField(required=True, write_only=True)
     password_2 = serializers.CharField(
-        style={'input_type': 'password'},
-        write_only=True
+        style={'input_type': 'password'}, required=True, write_only=True
     )
 
     class Meta:
         model = User
         fields = ['username', 'email', 'password', 'password_2']
-        extra_kwargs = {
-            'password': {"write_only": True},
-            'username': {"required": True},
-            'email': {"required": True}
-        }
 
     def save(self):
         email = self.validated_data['email']
