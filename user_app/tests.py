@@ -51,6 +51,25 @@ class TestRegistrationTestCases(APITestCase):
             response.json()['username'][0], 'This field is required.'
         )
 
+    def test_user_already_exists(self):
+        url = reverse('register')
+        data = {
+            "username": "django-user",
+            "email": "django@test.com",
+            "password": "testpassword",
+            "password_2": "testpassword"
+        }
+        User.objects.create_user(
+            username='django-user',
+            password='testpassword',
+            email="django@test.com"
+        )
+        response = self.client.post(path=url, data=data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json()[0], 'User with the given email already exists'
+        )
+
 
 class TestLogin(APITestCase):
 
