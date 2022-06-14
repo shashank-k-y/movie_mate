@@ -21,7 +21,10 @@ from watchlist.api.permissions import (
     IsAdminOrReadOnly
 )
 from watchlist.api.throttling import ReviewCreateThrottle, ReviewListThrottle
-from watchlist.api.pagination import WatchListPagination, WatchListLimitOffsetPagination
+from watchlist.api.pagination import (
+    WatchListPagination,
+    WatchListLimitOffsetPagination
+)
 
 
 class WatchListView(APIView):
@@ -31,7 +34,9 @@ class WatchListView(APIView):
     def get(self, request):
         movies = WatchList.objects.all()
         paginator = WatchListPagination()
-        result_page = paginator.paginate_queryset(queryset=movies, request=request)
+        result_page = paginator.paginate_queryset(
+            queryset=movies, request=request
+        )
         serializer = WatchListSerializer(result_page, many=True)
         return Response(serializer.data)
 
@@ -151,14 +156,17 @@ class StreamingPlatformDetailView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors)
+
+        return Response(
+            serializer.errors, status=status.HTTP_400_BAD_REQUEST
+        )
 
     def delete(self, request, pk):
         try:
             movie = StreamingPlatform.objects.get(pk=pk)
         except StreamingPlatform.DoesNotExist:
             return Response(
-                {"error": "Movie does not exist"},
+                {"error": "Platform does not exist"},
                 status=status.HTTP_404_NOT_FOUND
             )
 

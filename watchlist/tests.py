@@ -11,8 +11,12 @@ from watchlist.models import StreamingPlatform
 class TestStreamPlatform(APITestCase):
 
     def setUp(self):
-        User.objects.create_user(username='django', password='testpass')
-        self.token = Token.objects.get(user__username='django')
+        self.user = User.objects.create_user(
+            username='django', password='testpass'
+        )
+        self.token, self.created = Token.objects.get_or_create(
+            user_id=self.user.id
+        )
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
         self.path = reverse('platform')
         self.platform = StreamingPlatform.objects.create(
@@ -67,3 +71,68 @@ class TestStreamPlatform(APITestCase):
         self.assertEqual(json_response['name'], platform.name)
         self.assertEqual(json_response['about'], platform.about)
         self.assertEqual(json_response['website'], platform.website)
+
+    def test_update_individual_stream_platform_item(self):
+        user = User.objects.get(username='django')
+        user.is_staff = True
+        user.save()
+        data = {
+            "name": "Hulu",
+            "about": "series and movies",
+            "website": "http://www.hulu.com"
+        }
+        response = self.client.put(
+            path=reverse("platform", args=(self.platform.id,)),
+            data=data
+        )
+        platform = StreamingPlatform.objects.get(id=self.platform.id)
+        json_response = response.json()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(json_response["name"], platform.name)
+        self.assertEqual(json_response["about"], platform.about)
+        self.assertEqual(json_response["website"], platform.website)
+
+    def test_update_individual_stream_platform_item_missing_fields(self):
+        user = User.objects.get(username='django')
+        user.is_staff = True
+        user.save()
+        response = self.client.put(
+            path=reverse("platform", args=(self.platform.id,)),
+            data={"name": "Hulu", "about": "series and movies"}
+        )
+        json_response = response.json()
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            json_response["website"][0], 'This field is required.'
+        )
+
+    def test_update_individual_stream_platform_object_doesnot_exist(self):
+        user = User.objects.get(username='django')
+        user.is_staff = True
+        user.save()
+        response = self.client.put(
+            path=reverse("platform", args=(2,)),
+            data={"name": "Hulu", "about": "series and movies"}
+        )
+        json_response = response.json()
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(json_response["error"], 'Platform does not exist')
+
+    def test_delete_individual_stream_platform_item(self):
+        user = User.objects.get(username='django')
+        user.is_staff = True
+        user.save()
+        response = self.client.delete(
+            path=reverse("platform", args=(self.platform.id,))
+        )
+        self.assertEqual(response.status_code, 204)
+
+    def test_delete_individual_stream_platform_item_not_found(self):
+        user = User.objects.get(username='django')
+        user.is_staff = True
+        user.save()
+        response = self.client.delete(
+            path=reverse("platform", args=(3,))
+        )
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.json()["error"], "Platform does not exist")
