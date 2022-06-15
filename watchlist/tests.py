@@ -5,7 +5,7 @@ from rest_framework.authtoken.models import Token
 
 from django.contrib.auth.models import User
 
-from watchlist.models import StreamingPlatform, WatchList
+from watchlist.models import Review, StreamingPlatform, WatchList
 
 
 class TestStreamPlatform(APITestCase):
@@ -266,3 +266,138 @@ class TestWatchList(APITestCase):
         )
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.json()['error'], 'Movie does not exist')
+
+
+class TestReview(APITestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='django', password='testpass'
+        )
+        self.token, self.created = Token.objects.get_or_create(
+            user_id=self.user.id
+        )
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+        self.platform = StreamingPlatform.objects.create(
+            name='netflix',
+            about='movies and series',
+            website='http://www.netflix.com'
+        )
+        self.movie_data = {
+            "platform": self.platform,
+            "title": 'dummy-movie',
+            "storyline": 'dummy storyline',
+            "active": True
+        }
+        self.movie = WatchList.objects.create(**self.movie_data)
+        self.movie_2_data = {
+            "platform": self.platform,
+            "title": 'dummy-movie-1',
+            "storyline": 'dummy storyline 2',
+            "active": True
+        }
+        self.movie_2 = WatchList.objects.create(**self.movie_2_data)
+
+        self.review_data = {
+            "reviewer": self.user,
+            "decription": "dummy-decription",
+            "watch_list": self.movie_2,
+            "ratings": 4,
+            "active": True
+        }
+        self.review = Review.objects.create(**self.review_data)
+
+    def test_create_review_with_throttled_response(self):
+        review_data = {
+            "decription": "dummy-decription",
+            "watch_list": self.movie.id,
+            "ratings": 4,
+            "active": True
+        }
+        response = self.client.post(
+            path=reverse('review-create', args=(self.movie.id,)),
+            data=review_data
+        )
+        json_response = response.json()
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(json_response['reviewer'], 'django')
+        self.assertEqual(json_response['ratings'], 4)
+        self.assertEqual(json_response['decription'], 'dummy-decription')
+        self.assertEqual(json_response['active'], True)
+
+        response_2 = self.client.post(
+            path=reverse('review-create', args=(self.movie.id,)),
+            data=review_data
+        )
+        self.assertEqual(response_2.status_code, 429)
+        self.assertEqual(
+            response_2.json()['detail'],
+            'Request was throttled. Expected available in 86400 seconds.'
+        )
+
+    def test_create_review_unauthenticated_user(self):
+        review_data = {
+            "decription": "dummy-decription",
+            "watch_list": self.movie.id,
+            "ratings": 4,
+            "active": True
+        }
+        self.client.force_authenticate(user=None)
+        response = self.client.post(
+            path=reverse('review-create', args=(self.movie.id,)),
+            data=review_data
+        )
+        self.assertEqual(response.status_code, 401)
+
+    def test_update_review(self):
+        review_data = {
+            "decription": "dummy-decription-updated",
+            "watch_list": self.movie.id,
+            "ratings": 2,
+            "active": True
+        }
+        response = self.client.put(
+            path=reverse('review-detail', args=(self.review.id,)),
+            data=review_data
+        )
+        json_response = response.json()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(json_response['reviewer'], 'django')
+        self.assertEqual(json_response['ratings'], 2)
+        self.assertEqual(
+            json_response['decription'], 'dummy-decription-updated'
+        )
+        self.assertEqual(json_response['active'], True)
+
+    def test_get_review(self):
+        response = self.client.get(
+            path=reverse('review-detail', args=(self.review.id,)),
+        )
+        json_response = response.json()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(json_response['reviewer'], 'django')
+        self.assertEqual(json_response['ratings'], 4)
+        self.assertEqual(json_response['decription'], 'dummy-decription')
+        self.assertEqual(json_response['active'], True)
+
+    def test_get_review_item_not_found(self):
+        response = self.client.get(
+            path=reverse('review-detail', args=(5,)),
+        )
+        json_response = response.json()
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(json_response['detail'], 'Not found.')
+
+    def test_delete_review(self):
+        response = self.client.delete(
+            path=reverse('review-detail', args=(self.review.id,)),
+        )
+        self.assertEqual(response.status_code, 204)
+
+    def test_delete_review_item_not_found(self):
+        response = self.client.delete(
+            path=reverse('review-detail', args=(5,)),
+        )
+        json_response = response.json()
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(json_response['detail'], 'Not found.')
