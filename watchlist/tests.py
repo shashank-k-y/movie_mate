@@ -404,3 +404,109 @@ class TestReview(APITestCase):
         json_response = response.json()
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(json_response['detail'], 'Not found.')
+
+
+class TestFilterMovie(APITestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='django', password='testpass'
+        )
+        self.token, self.created = Token.objects.get_or_create(
+            user_id=self.user.id
+        )
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+        self.platform = StreamingPlatform.objects.create(
+            name='netflix',
+            about='movies and series',
+            website='http://www.netflix.com'
+        )
+        self.movie_data = {
+            "platform": self.platform,
+            "title": 'dummy-movie',
+            "storyline": 'dummy storyline',
+            "active": True
+        }
+        self.movie = WatchList.objects.create(**self.movie_data)
+
+        self.movie_data_2 = {
+            "platform": self.platform,
+            "title": 'dummy-movie-2',
+            "storyline": 'dummy storyline-2',
+            "active": True
+        }
+        self.movie_2 = WatchList.objects.create(**self.movie_data_2)
+
+    def test_filter_all_movie(self):
+        response = self.client.get(
+            path='/watch/filter-movie'
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['count'], 2)
+
+    def test_filter_movie_by_title(self):
+        response = self.client.get(
+            path=f'/watch/filter-movie?title={self.movie.title}'
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['count'], 1)
+        self.assertEqual(response.json()['results'][0]['platform'], "netflix")
+        self.assertEqual(response.json()['results'][0]['title'], "dummy-movie")
+        self.assertEqual(
+            response.json()['results'][0]['storyline'], "dummy storyline"
+        )
+
+    def test_filter_movie_doesnot_exists(self):
+        response = self.client.get(
+            path='/watch/filter-movie?title=unknown'
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['count'], 0)
+
+
+class TestSearchMovie(APITestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='django', password='testpass'
+        )
+        self.token, self.created = Token.objects.get_or_create(
+            user_id=self.user.id
+        )
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+        self.platform = StreamingPlatform.objects.create(
+            name='netflix',
+            about='movies and series',
+            website='http://www.netflix.com'
+        )
+        self.movie_data = {
+            "platform": self.platform,
+            "title": 'dummy-movie',
+            "storyline": 'dummy storyline',
+            "active": True
+        }
+        self.movie = WatchList.objects.create(**self.movie_data)
+
+        self.movie_data_2 = {
+            "platform": self.platform,
+            "title": 'dummy-movie-2',
+            "storyline": 'dummy storyline-2',
+            "active": True
+        }
+        self.movie_2 = WatchList.objects.create(**self.movie_data_2)
+
+    def test_search_all_movie(self):
+        response = self.client.get(
+            path='/watch/search-movie'
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.json()), 2)
+
+    def test_search_movie_by_title(self):
+        response = self.client.get(
+            path=f'/watch/search-movie?title={self.movie.title}'
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.json()), 2)
+        self.assertEqual(response.json()[0]['title'], "dummy-movie")
+        self.assertEqual(response.json()[1]['title'], "dummy-movie-2")
