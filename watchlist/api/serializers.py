@@ -23,6 +23,15 @@ class WatchListSerializer(serializers.ModelSerializer):
         validated_data.update(platform=platform)
         return WatchList.objects.create(**validated_data)
 
+    def update(self, instance, validated_data):
+        instance.title = validated_data.get("title", instance.title)
+        instance.storyline = validated_data.get(
+            "storyline", instance.storyline
+        )
+        instance.active = validated_data.get("active", instance.active)
+        instance.save()
+        return instance
+
 
 class StreamingPlatformSerializer(serializers.ModelSerializer):
     watchlist = WatchListSerializer(many=True, read_only=True)
